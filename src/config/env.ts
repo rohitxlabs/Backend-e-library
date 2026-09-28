@@ -55,6 +55,9 @@ const EnvSchema = z
       .optional(),
 
     ADMIN_SECRET: z.string().min(32, 'must be at least 32 characters'),
+    // Enables GET /api/cron/password-setup-emails (serverless hosts such as Vercel, where the
+    // in-process worker cannot run). Vercel Cron sends it as "Authorization: Bearer <CRON_SECRET>".
+    CRON_SECRET: z.string().min(16, 'must be at least 16 characters').optional(),
 
     SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(24 * 90).default(168),
     COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']).default('lax'),
@@ -107,3 +110,5 @@ export const env = loadEnv();
 
 export const isProduction = env.NODE_ENV === 'production';
 export const isTest = env.NODE_ENV === 'test';
+/** Vercel sets VERCEL=1 at build and run time. Nothing persists between requests there. */
+export const isServerless = Boolean(process.env.VERCEL);

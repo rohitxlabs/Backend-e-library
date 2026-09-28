@@ -5,9 +5,9 @@ import { setEmailTransporter } from '../src/services/email.service.js';
 import { issuePasswordSetupToken } from '../src/services/token.service.js';
 import { createUser } from '../src/services/user.service.js';
 import { hashPassword } from '../src/utils/crypto.js';
-import { TEST_ADMIN_SECRET, TEST_FRONTEND_URL } from './setup/test-env.js';
+import { TEST_ADMIN_SECRET, TEST_CRON_SECRET, TEST_FRONTEND_URL } from './setup/test-env.js';
 
-export { TEST_ADMIN_SECRET, TEST_FRONTEND_URL };
+export { TEST_ADMIN_SECRET, TEST_CRON_SECRET, TEST_FRONTEND_URL };
 export const STRONG_PASSWORD = 'NewPassword123!';
 
 export async function resetDatabase(): Promise<void> {

@@ -1,22 +1,22 @@
 import cron from 'node-cron';
 import { env } from '../config/env.js';
-import { processPendingSetupEmails } from '../services/password-setup-email.service.js';
+import { processPendingSetupEmails, type BatchResult } from '../services/password-setup-email.service.js';
 import { deleteExpiredSessions } from '../services/session.service.js';
 import { deleteStaleTokens } from '../services/token.service.js';
 import { logger, serializeError } from '../utils/logger.js';
 
 const HOUSEKEEPING_EVERY_MS = 60 * 60 * 1000;
 
-let inFlight: Promise<void> | null = null;
+let inFlight: Promise<BatchResult | null> | null = null;
 let lastHousekeepingAt = 0;
 // hi 
 // tsconfig
 /**
  * One worker tick: email one batch of pending users, plus hourly cleanup of expired sessions and
  * old tokens. Overlapping ticks in the same process are skipped; other processes are handled by
- * row claiming in the service.
+ * row claiming in the service. Resolves to the batch result, or null if the run failed.
  */
-export function runPasswordSetupEmailJob(): Promise<void> {
+export function runPasswordSetupEmailJob(): Promise<BatchResult | null> {
   if (inFlight) {
     logger.debug('Email worker still running; skipping this tick');
     return inFlight;
@@ -35,8 +35,10 @@ export function runPasswordSetupEmailJob(): Promise<void> {
         const [sessions, tokens] = await Promise.all([deleteExpiredSessions(), deleteStaleTokens()]);
         if (sessions || tokens) logger.info('Housekeeping removed stale rows', { sessions, tokens });
       }
+      return result;
     } catch (error) {
       logger.error('Email worker run failed', { error: serializeError(error) });
+      return null;
     } finally {
       inFlight = null;
     }

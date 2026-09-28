@@ -9,6 +9,7 @@ import { createRateLimiters } from './middleware/rate-limit.middleware.js';
 import { noStore, requireTrustedOrigin } from './middleware/security.middleware.js';
 import { createAdminRouter } from './routes/admin.routes.js';
 import { createAuthRouter } from './routes/auth.routes.js';
+import { createCronRouter } from './routes/cron.routes.js';
 
 /** Builds the Express app without listening, so tests can drive it with supertest. */
 export function createApp(): Express {
@@ -36,9 +37,18 @@ export function createApp(): Express {
   app.use('/api', limiters.api, requireTrustedOrigin, noStore);
   app.use('/api/auth', createAuthRouter(limiters));
   app.use('/api/admin', createAdminRouter(limiters));
+  app.use('/api/cron', createCronRouter());
 
   app.use(notFoundHandler);
   app.use(errorHandler);
 
   return app;
 }
+
+/**
+ * Serverless entry point. Vercel's Express support loads this file (src/app.ts) and serves
+ * requests with its default export. Long-running hosts use src/server.ts instead, which also
+ * runs migrations and starts the in-process email worker; on Vercel the worker is replaced by
+ * GET /api/cron/password-setup-emails.
+ */
+export default createApp();

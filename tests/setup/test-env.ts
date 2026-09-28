@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import dotenv from 'dotenv';
 
 export const TEST_ADMIN_SECRET = 'test-admin-secret-0123456789-abcdefghijklmnop';
+export const TEST_CRON_SECRET = 'test-cron-secret-0123456789';
 export const TEST_FRONTEND_URL = 'http://localhost:3000';
 
 function readEnvFile(file: string): Record<string, string> {
@@ -48,6 +49,7 @@ export function applyTestEnv(): void {
     EMAIL_MAX_ATTEMPTS: '3',
     EMAIL_RECIPIENT_ALLOWLIST: '',
     ADMIN_SECRET: TEST_ADMIN_SECRET,
+    CRON_SECRET: TEST_CRON_SECRET,
     SESSION_TTL_HOURS: '168',
     COOKIE_SAME_SITE: 'lax',
     COOKIE_DOMAIN: '',

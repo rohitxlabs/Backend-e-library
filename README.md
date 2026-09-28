@@ -142,6 +142,31 @@ under your provider's per-minute limit.
 | Headers | Helmet |
 | Admin | shared secret (at least 32 characters) compared in constant time; swappable `AdminAuthenticator` for a future roles system |
 
+### Deploying on Vercel
+
+Vercel serves requests through the default export of `src/app.ts`. `src/server.ts` never runs
+there, so there are no automatic migrations and no in-process email worker. The worker is
+replaced by an HTTP endpoint that runs one batch per call:
+
+```
+GET /api/cron/password-setup-emails
+Authorization: Bearer <CRON_SECRET>
+→ { "success": true, "data": { "claimed": 3, "sent": 3, "failed": 0 } }
+```
+
+1. In the Vercel project environment variables, set everything from your `.env` (not
+   `TEST_DATABASE_URL`), plus `NODE_ENV=production`, `TRUST_PROXY=1`, and a random
+   `CRON_SECRET` of at least 16 characters.
+2. Run migrations from your machine: `npm run migrate`, with `DATABASE_URL` pointing at Neon.
+3. Choose what calls the endpoint:
+   - **Vercel Cron:** `vercel.json` schedules one call per day, which is the limit on the Hobby
+     plan. On Pro, change the schedule to `* * * * *` for every minute. Vercel sends the
+     `Authorization` header by itself.
+   - **Any plan, every minute:** create a free job at cron-job.org (or similar) that calls the URL
+     above every minute with the header `Authorization: Bearer <CRON_SECRET>`.
+
+Rate limits are kept in memory per function instance, so on Vercel they are only best-effort.
+
 ### Production checklist
 
 - `NODE_ENV=production`. The app then refuses to start unless `APP_URL` and `FRONTEND_URL` use

@@ -4,7 +4,7 @@
  */
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
-import { env } from '../config/env.js';
+import { env, isServerless } from '../config/env.js';
 import { logger, serializeError } from '../utils/logger.js';
 
 let transporter: Transporter | null = null;
@@ -15,8 +15,9 @@ function createSmtpTransporter(): Transporter {
     port: env.SMTP_PORT,
     secure: env.SMTP_SECURE,
     ...(env.SMTP_USER && env.SMTP_PASSWORD ? { auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } } : {}),
-    // Reuse a few SMTP connections for batch sends instead of reconnecting per email.
-    pool: true,
+    // On a long-running server, reuse a few SMTP connections for batch sends. On serverless hosts
+    // the process is frozen between requests, which silently kills pooled sockets, so connect per email.
+    pool: !isServerless,
     maxConnections: 3,
     maxMessages: 100,
     // Fail fast so a hung SMTP server cannot stall the worker past its claim lease.
