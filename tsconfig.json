@@ -11,6 +11,9 @@
     "target": "esnext",
     "lib": ["esnext"],
     "types": ["node"],
+    // Explicit so type lookup still works when a tool compiles through a generated config that
+    // extends this one from another directory (Vercel's TypeScript 7 builder does this).
+    "typeRoots": ["./node_modules/@types"],
 
     // Other Outputs
     "sourceMap": true,
