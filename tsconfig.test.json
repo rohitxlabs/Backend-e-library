@@ -1,0 +1,9 @@
+{
+  // Type-checks application code and tests together; emits nothing.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true
+  },
+  "include": ["src", "tests", "vitest.config.ts"]
+}
